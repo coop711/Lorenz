@@ -5,13 +5,17 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, highlight = FALSE)
+```
+
 ### Data Management
 
 자료 입력
 
 <img src = "../pics/korea_labor_income_2010.png" height = "480" width = "480">
 
-```{r, data}
+```{r, data, highlight = FALSE}
 library(knitr)
 (income.kor <- read.table("../data/labor_income_kor.txt", header = TRUE, row.names = 1))
 str(income.kor)
@@ -21,6 +25,7 @@ str(income.kor)
 
 ```{r, names}
 names(income.kor) <- c("Earners(%)", "Income(%)")
+income.kor
 kable(income.kor)
 rownames(income.kor) <- sub("-", " - ", rownames(income.kor))
 kable(income.kor)
@@ -47,7 +52,8 @@ r.names.split[[1]][1]
 `anonymous function`과 `sapply()`를 이용하여 긴 character list의 앞 원소만 추출하는 방법을 살필 것.
 
 ```{r, income breaks}
-(r.names.split.first <- sapply(r.names.split, function(x){x[1]}))
+# (r.names.split.first <- sapply(r.names.split, function(x){x[1]}))
+(r.names.split.first <- sapply(r.names.split, `[`, 1))
 (income.breaks <- as.numeric(r.names.split.first))
 (income.breaks <- c(income.breaks, 2000))
 ```
@@ -61,7 +67,7 @@ r.names.split[[1]][1]
 각 기둥의 면적이 해당 소득구간의 퍼센티지와 같게 해주려면 각 퍼센티지를 `width`로 나눠줘야 함. 다음 각 경우를 비교(`results = 'hide'`를 지우고 실행).
 
 ```{r, height, results = 'hide'}
-options(digits = 2)
+options(digits = 3)
 (height.earners <- income.kor[, 1]/income.widths)
 (height.earners.2 <- income.kor[, "Earners(%)"]/income.widths)
 (height.earners.3 <- income.kor[[1]]/income.widths)
@@ -174,6 +180,7 @@ income.class.cum <- sapply(income.class.cum, function(x){x[2]})
 income.class.cum[c(1, 14)] <- c("~ 0", "0 ~ 2000")
 rownames(income.kor.cum) <- income.class.cum
 colnames(income.kor.cum) <- c("Cumulated Wage Earners (%)", "Cumulated Income (%)")
+income.kor.cum
 kable(income.kor.cum)
 earners.kor.cum.df <- data.frame(x = income.breaks, y = income.kor.cum[, 1])
 income.kor.cum.df <- data.frame(x = income.breaks, y = income.kor.cum[, 2])
@@ -319,13 +326,17 @@ library(ggplot2)
 (g8 <- g7 +
   scale_x_continuous(breaks = earners[c(1:8, 14)], labels = earners[c(1:8, 14)])) 
 (g9 <- g8 +
-  scale_y_continuous(breaks = seq(0, 100, by = 25))) 
+  scale_y_continuous(breaks = income[c(1:8, 14)], labels = income[c(1:8, 14)]))
+#  scale_y_continuous(breaks = seq(0, 100, by = 25))) 
 (g10 <- g9 +
-  annotate("text", x = 30, y = 60, label = paste("Gini = ", round(gini, digits = 3)), size = 7)) 
+  annotate("text", x = 30, y = 60, label = paste("Gini = ", round(gini, digits = 3)), size = 9, color = "red", srt = 15)) 
 (g11 <- g10 +
+  annotate("text", x = 80, y = 20, label = "15 Million", size = 9, color = "blue"))
+(g12 <- g11 +
   theme_bw())
 ```
 
 ```{r, final output, fig.width = 9, fig.height = 9}
-g11
+g12
+ggsave("../pics/lorenz_curve_wage_kr.png", width = 9, height = 9)
 ```
